@@ -22,7 +22,7 @@ Base = declarative_base()
 # --------------------------------------
 
 class Printer(Base):
-    __tablename__ = "Printer"
+    __tablename__ = "printer"
 
     ID = Column(Integer, primary_key=True, autoincrement=True)
 
