@@ -46,18 +46,17 @@ def main(context):
     try:
         results = []
 
-        # Run health check 6 times
-        # once every 10 seconds
-        for i in range(6):
+        # Check every second for 60 seconds
+        for i in range(60):
             printers = check_health()
 
             results.append({
                 "check": i + 1,
+                "time": datetime.now(timezone.utc).isoformat(),
                 "printers": printers
             })
 
-            if i < 5:
-                time.sleep(10)
+            time.sleep(1)
 
         return context.res.json({
             "status": "ok",
