@@ -5,10 +5,10 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import create_engine, text
 
 DB_URL = os.environ["DB_URL"]
-
 engine = create_engine(DB_URL, pool_pre_ping=True)
 
 STALE_SECONDS = 6
+RUN_FOR_SECONDS = 55   # stay under Appwrite's 60s default timeout
 
 
 def check_health():
@@ -26,41 +26,31 @@ def check_health():
                     "AVAILABLE",
                     "LAST_PING"
             """),
-            {
-                "cutoff": cutoff
-            }
+            {"cutoff": cutoff}
         )
-
         return [
             {
                 "printer_id": row[0],
                 "available": row[1],
-                "last_ping": row[2].isoformat()
-                if row[2] else None
+                "last_ping": row[2].isoformat() if row[2] else None
             }
             for row in result.fetchall()
         ]
 
 
 def main(context):
+    start = time.monotonic()
+    updates = 0
     try:
-        results = []
-
-        # Check every second for 60 seconds
-        for i in range(60):
-            printers = check_health()
-
-            results.append({
-                "check": i + 1,
-                "time": datetime.now(timezone.utc).isoformat(),
-                "printers": printers
-            })
-
+        while time.monotonic() - start < RUN_FOR_SECONDS:
+            check_health()
+            updates += 1
             time.sleep(1)
 
         return context.res.json({
             "status": "ok",
-            "checks": results
+            "updates_run": updates,
+            "duration": round(time.monotonic() - start, 2)
         })
 
     except Exception as e:
