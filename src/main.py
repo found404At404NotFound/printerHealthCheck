@@ -8,7 +8,7 @@ DB_URL = os.environ["DB_URL"]
 
 engine = create_engine(DB_URL, pool_pre_ping=True)
 
-STALE_SECONDS = 30
+STALE_SECONDS = 6
 
 
 def check_health():
